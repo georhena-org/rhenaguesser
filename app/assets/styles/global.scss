@@ -1,0 +1,104 @@
+// Variables
+$blue-shade-1: #c6c8ee; //$blue-shade-1: #cee5dd;
+$blue-shade-2: #7377d3; //$blue-shade-2: #a3cec4;
+$blue-shade-3: #3c42ad; //$blue-shade-3: #55afb3;
+$blue-shade-4: #21268f; //$blue-shade-4: #419fa5;
+
+$yellow-shade-1: #f0cb69;
+$yellow-shade-2: #ecb665;
+$yellow-shade-3: #e58c5c;
+$yellow-shade-4: #dc5a52;
+
+$yellow-georhena: #f2d44c;
+
+$red-shade-1: #f599a0;
+$red-shade-2: #eb5965;
+$red-shade-3: #d32b39;
+$red-shade-4: #970e1a;
+
+$green-shade-1: #a3e4b3;
+$green-shade-2: #7ddc95;
+$green-shade-3: #4ad577;
+$green-shade-4: #18cf5a;
+
+$black-color: #121212;
+$white-color: #ffffff; // old : #fff4f4
+$dark-color: #022932;
+$darker-color: #021c23;
+$yellow-color: $yellow-shade-4;
+$blue-color: $blue-shade-4;
+$shadow-color: rgba(163, 206, 196, 0.25);
+
+
+// Fonts
+@font-face {
+  font-family: 'Mahoda';
+  src: url('@/assets/fonts/Mahoda.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neo Regular';
+  src: url('@/assets/fonts/NeometricAlt-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neo Medium';
+  src: url('@/assets/fonts/NeometricAlt-Medium.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neo Bold';
+  src: url('@/assets/fonts/NeometricAlt-Bold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neo Extra';
+  src: url('@/assets/fonts/NeometricAlt-ExtraBold.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Main
+html, body {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(10deg, $darker-color 0%, $blue-color 100%);
+  color: $blue-shade-1;
+}
+
+a {
+  color: $white-color;
+}
+
+button a, .buttons a {
+  text-decoration: none;
+}
+
+h1, h2, h3 {
+  font-family: Mahoda, sans-serif, 'Arial Black';
+}
