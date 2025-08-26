@@ -204,6 +204,7 @@ export default defineWebSocketHandler({
                             scores
                         }));
                     } else {
+                        console.warn('[ws] game not found:', data.gameId);
                         peer.send(JSON.stringify({
                             action: 'error',
                             message: 'Game not found'
@@ -211,9 +212,11 @@ export default defineWebSocketHandler({
                     }
                     break;
                 case 'ping':
+                    console.warn('[ws] ping received');
                     peer.send(JSON.stringify({ action: 'pong' }));
                     break;
                 default:
+                    console.warn('[ws] unknown action:', data.action);
                     peer.send(JSON.stringify({
                         action: 'error',
                         message: 'Invalid action'
