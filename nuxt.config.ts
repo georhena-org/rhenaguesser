@@ -36,8 +36,9 @@ export default defineNuxtConfig({
           }
       },
       server: {
-        allowedHosts: [".ngrok-free.app"]
-      }
+        allowedHosts: [".georhena.eu",".localhost"]
+      },
+      
   },
 
   devtools: {
