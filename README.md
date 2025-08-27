@@ -1,1 +1,1 @@
-Jeu géographique "panoguesser" adapté au territoire du Rhin Supérieur, dans 2 langues: Français et Allemand.
+Jeu géographique "panoguessr" adapté au territoire du Rhin Supérieur, dans 2 langues: Français et Allemand.
