@@ -43,7 +43,7 @@ export const useMultiplayer = defineStore('multiplayer', {
     actions: {
         async initializeWebSocket() {
             try {
-                const ws = new WebSocket(`${window.location.origin.replace('http', 'ws')}/rhenaguesser/api/ws`)
+                const ws = new WebSocket(`${window.location.origin.replace('http', 'ws')}/api/ws`)
 
                 ws.onopen = () => {
                     this.connected = true
