@@ -8,8 +8,7 @@ export default defineNuxtConfig({
       link: [
         { rel: 'icon', type: 'image/svg', href: '/favicon.svg' }
       ]
-    },
-    baseURL: '/rhenaguesser/'
+    }
   },
   future: {
       compatibilityVersion: 4
