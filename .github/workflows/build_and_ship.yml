@@ -1,23 +1,23 @@
-name: Build & Ship rhenaguessr image
+name: CD - Build n Ship a project's image
 
 on:
   push:
     branches: [ "main" ]
   workflow_dispatch: {}
 
+# needs 2 env variables
+env:
+  PROJECT_NAME : "rhenaguessr"           # will be used for the image name, and for the archive name
+  METADATA_FILE : "cicd_metadata.json"   # metadata file containing the image_version attribute (should be in X.Y.Z format), default is cicd_metadata.json
+
 jobs:
   build_and_ship:
     runs-on: ubuntu-latest
-
-    env:
-      PROJECT: rhenaguessr
-      METADATA_FILE: cicd_metadata.json
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Parse version from cicd_metadata.json
+      - name: Parse version and compute tags and archive name
         id: meta
         run: |
           set -euo pipefail
@@ -30,16 +30,24 @@ jobs:
             echo "image_version must match X.Y.Z, got: $ver" >&2
             exit 1
           fi
-          echo "version parsed: $ver"
-          echo "archive to create: ${PROJECT}-image_v${ver}.tar.zst"
-          
-          echo "version=$ver" >> "$GITHUB_OUTPUT"
-          echo "archive=${PROJECT}-image_v${ver}.tar.zst" >> "$GITHUB_OUTPUT"
+          echo "parsed version: $ver"
+          short_sha="${GITHUB_SHA::7}"
+        
+          tag="$ver-sha_${short_sha}"
+          archive="${PROJECT_NAME}-image-${tag}.tar.zst"
+        
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+        
+          echo "Image tag: $tag"
+          echo "Archive name: $archive"
+
 
       - name: Build docker image
         run: |
           set -euo pipefail
-          docker build -t "${PROJECT}:${{ steps.meta.outputs.version }}" .
+          tag="${{ steps.meta.outputs.tag }}"
+          docker build -t "${PROJECT_NAME}-image:${{ steps.meta.outputs.tag }}" .
 
       - name: Save image archive (docker save | zstd)
         run: |
@@ -47,7 +55,7 @@ jobs:
           archive="${{ steps.meta.outputs.archive }}"
 
           # zstd level 3
-          docker save "${PROJECT}:${{ steps.meta.outputs.version }}" \
+          docker save "${PROJECT_NAME}-image:${{ steps.meta.outputs.tag }}" \
             | zstd -3 -T0 \
             > "$archive"
 
@@ -80,4 +88,3 @@ jobs:
             '${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}' <<EOF
           put "$archive" "$archive"
           EOF
-
