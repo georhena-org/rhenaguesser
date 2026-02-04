@@ -72,10 +72,12 @@ jobs:
           set -euo pipefail
           archive='${{ steps.meta.outputs.archive }}'
       
-              sftp -b - \
-                -P '${{ secrets.DEPLOY_PORT }}' \
-                -i "$HOME/.ssh/deploy_key" \
-                -o IdentitiesOnly=yes \
-                -o StrictHostKeyChecking=accept-new \
-                '${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}' <<
-                put "$archive" "$archive"
+          sftp -b - \
+            -P '${{ secrets.DEPLOY_PORT }}' \
+            -i "$HOME/.ssh/deploy_key" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=accept-new \
+            '${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}' <<EOF
+          put "$archive" "$archive"
+          EOF
+
