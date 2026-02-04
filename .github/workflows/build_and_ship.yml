@@ -2,7 +2,7 @@ name: Build & Ship rhenaguessr image
 
 on:
   push:
-    branches: [ "main_" ]
+    branches: [ "main" ]
   workflow_dispatch: {}
 
 jobs:
