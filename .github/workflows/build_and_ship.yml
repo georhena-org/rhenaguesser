@@ -1,8 +1,8 @@
-name: Build & Ship rhenaguessr image (zstd)
+name: Build & Ship rhenaguessr image
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main_" ]
   workflow_dispatch: {}
 
 jobs:
