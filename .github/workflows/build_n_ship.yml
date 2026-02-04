@@ -1,4 +1,4 @@
-name: CD - Build n Ship a project's image
+name: Build n Ship RhenaGuessr
 
 on:
   push:
