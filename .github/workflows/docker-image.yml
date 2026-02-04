@@ -1,0 +1,75 @@
+name: Build & Ship rhenaguessr image (zstd)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+jobs:
+  build_and_ship:
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT: rhenaguessr
+      METADATA_FILE: cicd_metadata.json
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse version from cicd_metadata.json
+        id: meta
+        run: |
+          set -euo pipefail
+          ver="$(jq -r '.image_version // empty' "${METADATA_FILE}")"
+          if [[ -z "$ver" ]]; then
+            echo "image_version missing in ${METADATA_FILE}" >&2
+            exit 1
+          fi
+          if [[ ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "image_version must match X.Y.Z, got: $ver" >&2
+            exit 1
+          fi
+
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          echo "archive=${PROJECT}-image_v${ver}.tar.zst" >> "$GITHUB_OUTPUT"
+
+      - name: Build docker image
+        run: |
+          set -euo pipefail
+          docker build -t "${PROJECT}:${{ steps.meta.outputs.version }}" .
+
+      - name: Save image archive (docker save | zstd)
+        run: |
+          set -euo pipefail
+          archive="${{ steps.meta.outputs.archive }}"
+
+          # zstd level 3
+          docker save "${PROJECT}:${{ steps.meta.outputs.version }}" \
+            | zstd -3 -T0 \
+            > "$archive"
+
+          ls -lh "$archive"
+
+      - name: Setup SSH key
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          # Pragmatic CI setting (better: pin host key)
+          printf "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n" > ~/.ssh/config
+
+      - name: Rsync archive to server
+        run: |
+          set -euo pipefail
+          archive="${{ steps.meta.outputs.archive }}"
+
+          rsync -v --info=progress2 -h \
+            --no-perms --no-owner --no-group \
+            -e "ssh -p ${{ secrets.DEPLOY_PORT }} -i ~/.ssh/id_ed25519" \
+            --checksum --ignore-times --partial \
+            "$archive" \
+            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${archive}"
+
