@@ -1,8 +1,12 @@
 {
-  "name": "panoguessr",
+  "name": "rhenaguessr",
   "private": true,
   "type": "module",
   "license": "MIT",
+  "georhena.eu":{
+    "image_name":"rhenaguessr",
+    "version":"v1.0.0"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
