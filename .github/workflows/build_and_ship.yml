@@ -2,7 +2,7 @@ name: Build & Ship rhenaguessr image
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main_" ]
   workflow_dispatch: {}
 
 jobs:
@@ -30,7 +30,9 @@ jobs:
             echo "image_version must match X.Y.Z, got: $ver" >&2
             exit 1
           fi
-
+          echo "version parsed: $ver"
+          echo "archive to create: ${PROJECT}-image_v${ver}.tar.zst"
+          
           echo "version=$ver" >> "$GITHUB_OUTPUT"
           echo "archive=${PROJECT}-image_v${ver}.tar.zst" >> "$GITHUB_OUTPUT"
 
