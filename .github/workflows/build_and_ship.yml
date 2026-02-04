@@ -53,46 +53,35 @@ jobs:
 
           ls -lh "$archive"
 
-      - name: Setup SSH key
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+      - name: Setup SSH (key file + known_hosts)
         run: |
           set -euo pipefail
       
-          # Prepare ~/.ssh with correct permissions
           install -m 700 -d "$HOME/.ssh"
       
-          # Write key safely (handles Windows CRLF) and lock permissions
-          KEY_FILE="$RUNNER_TEMP/ci_deploy_key"
-          printf "%s" "$SSH_PRIVATE_KEY" | tr -d '\r' > "$KEY_FILE"
-          chmod 600 "$KEY_FILE"
+          # Write private key directly to the one file we will use
+          install -m 600 /dev/null "$HOME/.ssh/deploy_key"
+          printf '%s' '${{ secrets.SSH_PRIVATE_KEY }}' | tr -d '\r' > "$HOME/.ssh/deploy_key"
       
-          # Keep your rsync unchanged: it expects ~/.ssh/id_ed25519
-          cp "$KEY_FILE" "$HOME/.ssh/id_ed25519"
-          chmod 600 "$HOME/.ssh/id_ed25519"
-      
-          # Pin host key instead of disabling host key checking
-          ssh-keyscan -p "$DEPLOY_PORT" "$DEPLOY_HOST" >> "$HOME/.ssh/known_hosts"
+          # Pin server host key (do NOT disable host key checking)
+          ssh-keyscan -p '${{ secrets.DEPLOY_PORT }}' '${{ secrets.DEPLOY_HOST }}' >> "$HOME/.ssh/known_hosts"
           chmod 644 "$HOME/.ssh/known_hosts"
-
+      
       - name: Debug SSH
         run: |
-          ssh -vvv -p "$DEPLOY_PORT" -i ~/.ssh/id_ed25519 \
+          ssh -vvv -p '${{ secrets.DEPLOY_PORT }}' -i "$HOME/.ssh/deploy_key" \
             -o PreferredAuthentications=publickey \
             -o IdentitiesOnly=yes \
-            "$DEPLOY_USER@$DEPLOY_HOST" true
-
+            '${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}' true
+      
       - name: Rsync archive to server
         run: |
           set -euo pipefail
-          archive="${{ steps.meta.outputs.archive }}"
-          
+          archive='${{ steps.meta.outputs.archive }}'
+      
           rsync -v --info=progress2 -h \
             --no-perms --no-owner --no-group \
-            -e "ssh -i ~/.ssh/id_ed25519" \
+            -e "ssh -p '${{ secrets.DEPLOY_PORT }}' -i '$HOME/.ssh/deploy_key' -o IdentitiesOnly=yes" \
             --checksum --ignore-times --partial \
             "$archive" \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${archive}"
-
+            '${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:'"$archive"
