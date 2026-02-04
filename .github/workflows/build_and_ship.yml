@@ -66,30 +66,17 @@ jobs:
           # Pin server host key (do NOT disable host key checking)
           ssh-keyscan -p '${{ secrets.DEPLOY_PORT }}' '${{ secrets.DEPLOY_HOST }}' >> "$HOME/.ssh/known_hosts"
           chmod 644 "$HOME/.ssh/known_hosts"
-
-          
-      - name: Show deploy key fingerprint
-        run: |
-          set -euo pipefail
-          ssh-keygen -lf "$HOME/.ssh/deploy_key"
-          ssh-keygen -y -f "$HOME/.ssh/deploy_key" | ssh-keygen -lf -
-
       
-      - name: Debug SSH
-        run: |
-          ssh -vvv -p '${{ secrets.DEPLOY_PORT }}' -i "$HOME/.ssh/deploy_key" \
-            -o PreferredAuthentications=publickey \
-            -o IdentitiesOnly=yes \
-            '${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}' true
-      
-      - name: Rsync archive to server
+      - name: Send archive to server
         run: |
           set -euo pipefail
           archive='${{ steps.meta.outputs.archive }}'
       
-          rsync -v --info=progress2 -h \
-            --no-perms --no-owner --no-group \
-            -e "ssh -p '${{ secrets.DEPLOY_PORT }}' -i '$HOME/.ssh/deploy_key' -o IdentitiesOnly=yes" \
-            --checksum --ignore-times --partial \
-            "$archive" \
-            '${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:'"$archive"
+              sftp -b - \
+                -P '${{ secrets.DEPLOY_PORT }}' \
+                -i "$HOME/.ssh/deploy_key" \
+                -o IdentitiesOnly=yes \
+                -o StrictHostKeyChecking=accept-new \
+                '${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}' <<EOF
+              put "$archive" "$archive"
+              EOF
