@@ -54,14 +54,28 @@ jobs:
           ls -lh "$archive"
 
       - name: Setup SSH key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
         run: |
           set -euo pipefail
-          install -m 700 -d ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-
-          # Pragmatic CI setting (better: pin host key)
-          printf "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n" > ~/.ssh/config
+      
+          # Prepare ~/.ssh with correct permissions
+          install -m 700 -d "$HOME/.ssh"
+      
+          # Write key safely (handles Windows CRLF) and lock permissions
+          KEY_FILE="$RUNNER_TEMP/ci_deploy_key"
+          printf "%s" "$SSH_PRIVATE_KEY" | tr -d '\r' > "$KEY_FILE"
+          chmod 600 "$KEY_FILE"
+      
+          # Keep your rsync unchanged: it expects ~/.ssh/id_ed25519
+          cp "$KEY_FILE" "$HOME/.ssh/id_ed25519"
+          chmod 600 "$HOME/.ssh/id_ed25519"
+      
+          # Pin host key instead of disabling host key checking
+          ssh-keyscan -p "$DEPLOY_PORT" "$DEPLOY_HOST" >> "$HOME/.ssh/known_hosts"
+          chmod 644 "$HOME/.ssh/known_hosts"
 
       - name: Rsync archive to server
         run: |
