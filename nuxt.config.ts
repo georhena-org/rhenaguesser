@@ -5,54 +5,64 @@ export default defineNuxtConfig({
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
       title: 'RhenaGuesser',
-      link: [
-        { rel: 'icon', type: 'image/svg', href: '/favicon.svg' }
-      ]
-    }
+      link: [{ rel: 'icon', type: 'image/svg', href: '/favicon.svg' }],
+    },
   },
   future: {
-      compatibilityVersion: 4
+    compatibilityVersion: 4,
   },
   ssr: false,
 
-  modules: [
-      '@nuxtjs/leaflet',
-      '@nuxt/icon',
-      '@pinia/nuxt'
-  ],
+  modules: ['@nuxtjs/leaflet', '@nuxt/icon', '@pinia/nuxt', '@nuxtjs/i18n', '@nuxt/ui'],
+  i18n: {
+    locales: [
+      { code: 'de', file: 'de.ts', name: 'Deutsch' },
+      { code: 'fr', file: 'fr.ts', name: 'Français' },
+      { code: 'en', file: 'en.ts', name: 'English' },
+    ],
+    defaultLocale: 'fr',
+    langDir: 'locales',
+    strategy: 'no_prefix',
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_redirected',
+      cookieCrossOrigin: true,
+      redirectOn: 'root', // recommended
+    },
+  },
 
   css: [
-      '@/assets/styles/global.scss',
-      '@panoramax/web-viewer/build/index.css'
+    '@/assets/styles/global.scss',
+    '@panoramax/web-viewer/build/index.css',
+    '~/assets/css/main.css',
   ],
 
   vite: {
-      css: {
-          preprocessorOptions: {
-              scss: {
-                  api: 'modern'
-              }
-          }
+    css: {
+      preprocessorOptions: {
+        scss: {
+          api: 'modern',
+        },
       },
-      server: {
-        allowedHosts: [".georhena.eu",".localhost"]
-      },
-      
+    },
+    server: {
+      allowedHosts: ['.georhena.eu', '.localhost'],
+    },
   },
 
   devtools: {
-      enabled: false
+    enabled: false,
   },
 
   nitro: {
-      preset: 'node-server',
-      experimental: {
-          websocket: true,
-      },
-      externals: {
-          inline: ['vue', 'vue/server-renderer']
-      }
+    preset: 'node-server',
+    experimental: {
+      websocket: true,
+    },
+    externals: {
+      inline: ['vue', 'vue/server-renderer'],
+    },
   },
 
-  compatibilityDate: '2025-01-21'
+  compatibilityDate: '2025-01-21',
 })

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useTemplateRef } from 'vue';
 import { Howl } from 'howler';
-import {useMultiplayer} from '~/stores/multiplayer';
+import { useMultiplayer } from '~/stores/multiplayer';
 import type { GeoPoint } from "~~/types/geo";
-import {useRouter} from "#vue-router";
+import { useRouter } from "#vue-router";
 
 const multiplayer = useMultiplayer();
 const clockTickingSound = useState<Howl>('clock-ticking-sound');
@@ -15,6 +15,7 @@ const musicStore = useMusiqueStore();
 const mapSelect = useTemplateRef('map-select');
 const router = useRouter();
 const loaderReady = ref<boolean>(false);
+const { } = useI18n()
 
 watch(() => multiplayer.currentLocationId, (newId) => {
   if (newId) {
@@ -52,7 +53,7 @@ onMounted(() => {
   }
 
   // Redirect to home if no initial picture ID
-  if(!pictureId.value) {
+  if (!pictureId.value) {
     router.push('/');
   }
 });
@@ -70,22 +71,22 @@ const waitingPlayers = computed(() => {
 });
 
 watch(() => multiplayer.guesses, (newGuesses) => {
-    if (!multiplayer.realLocation) return;
+  if (!multiplayer.realLocation) return;
 
-    points.value = [{
-      lat: multiplayer.realLocation.lat,
-      lng: multiplayer.realLocation.lng,
-      isTarget: true,
-    }];
+  points.value = [{
+    lat: multiplayer.realLocation.lat,
+    lng: multiplayer.realLocation.lng,
+    isTarget: true,
+  }];
 
-    newGuesses.forEach((guess: { playerId: string, position: { playerId: string, latitude: number, longitude: number } }) => {
-      points.value.push({
-        lat: guess.position.latitude,
-        lng: guess.position.longitude,
-        isTarget: false,
-        username: multiplayer.players.find(p => p.id === guess.playerId)?.username,
-      });
+  newGuesses.forEach((guess: { playerId: string, position: { playerId: string, latitude: number, longitude: number } }) => {
+    points.value.push({
+      lat: guess.position.latitude,
+      lng: guess.position.longitude,
+      isTarget: false,
+      username: multiplayer.players.find(p => p.id === guess.playerId)?.username,
     });
+  });
 
 }, { deep: true });
 </script>
@@ -94,7 +95,7 @@ watch(() => multiplayer.guesses, (newGuesses) => {
   <div class="page">
     <div v-if="!pictureId" class="loading">
       <div class="multiplayer-info">
-        <AppButton>Joueurs: {{ multiplayer.players.length }}</AppButton>
+        <AppButton>{{ $t('players') }}: {{ multiplayer.players.length }}</AppButton>
         <AppButton>Round {{ roundStore.round }} / 5</AppButton>
       </div>
       <div class="title">Chargement...</div>
@@ -102,44 +103,41 @@ watch(() => multiplayer.guesses, (newGuesses) => {
     <div class="countdown" v-if="!hasGuessed && loaderReady">
       <div class="row-top">
         <div class="multiplayer-info">
-          <AppButton>Joueurs: {{ multiplayer.players.length }}</AppButton>
+          <AppButton>{{ $t('players') }}: {{ multiplayer.players.length }}</AppButton>
           <AppButton>Round {{ roundStore.round }} / 5</AppButton>
         </div>
         <div class="vol_button">
-          <Icon v-if="musicStore.isPlaying" @click="updateMusic()" name="tabler:volume"/>
-          <Icon v-else @click="updateMusic()" name="tabler:volume-off"/>
+          <Icon v-if="musicStore.isPlaying" @click="updateMusic()" name="tabler:volume" />
+          <Icon v-else @click="updateMusic()" name="tabler:volume-off" />
         </div>
       </div>
-      <AppTimer :start="300" @timeout="timeOutValidation"/>
+      <AppTimer :start="300" @timeout="timeOutValidation" />
     </div>
     <div v-else class="waiting">
       <template v-if="waitingPlayers.length > 1">
-        <div class="waiting-title">En attente des autres joueurs...</div>
+        <div class="waiting-title">{{ $t('waiting_for_other_players') }}</div>
         <div class="waiting-players">
-          <div
-              v-for="player in waitingPlayers.filter(p => p.id !== multiplayer.playerId)"
-              :key="player.id"
-              class="waiting-player"
-          >
+          <div v-for="player in waitingPlayers.filter(p => p.id !== multiplayer.playerId)" :key="player.id"
+            class="waiting-player">
             {{ player.username }}
           </div>
         </div>
       </template>
       <div v-else-if="!loaderReady" class="waiting-title">
-        Chargement...
+        {{ $t('loading') }}
       </div>
       <div v-else-if="points.length <= 1" class="waiting-title">
-        En attente des résultats...
+        {{ $t('waiting_for_results') }}
       </div>
       <div class="map-overview" v-else>
         <div class="waiting-title">
-          Round terminé, prochain round dans quelques instants...
+          {{ $t('round_complete') }}, {{ $t('next_round_in') }}...
         </div>
         <MapResultMulti :points="points" />
       </div>
     </div>
-    <MapViewer v-if="pictureId" :picture-id="pictureId" @picready="() => loaderReady = true"/>
-    <MapSelect ref="map-select" @validate="onValidate"/>
+    <MapViewer v-if="pictureId" :picture-id="pictureId" @picready="() => loaderReady = true" />
+    <MapSelect ref="map-select" @validate="onValidate" />
   </div>
 </template>
 

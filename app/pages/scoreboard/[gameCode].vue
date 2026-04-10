@@ -102,12 +102,12 @@ onMounted(() => {
   <div class="container">
     <div class="loading-overlay" v-if="pending">
       <div class="spinner"></div>
-      <div class="loading-text">Chargement des résultats...</div>
+      <div class="loading-text">{{ $t('scoreboard.loading') }}</div>
     </div>
 
     <div class="scoreboard_container">
       <div :class="['home-title', titleClasses]">
-        <span class="title-char" v-for="(char, i) in 'Résultat'" :key="i" :style="{ animationDelay: `${0.1 * i}s` }">
+        <span class="title-char" v-for="(char, i) in $t('scoreboard.title')" :key="i" :style="{ animationDelay: `${0.1 * i}s` }">
           {{ char }}
         </span>
       </div>

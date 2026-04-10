@@ -44,13 +44,13 @@ const formattedDistance = computed(() => formatDistance(distanceMeters.value));
   <div class="page">
     <div class="result">
       <div class="title">
-        <div class="result_title">Résultat : {{ points }} points. </div>
-        <div class="total_title">(Total : {{ roundStore.score }} points)</div>
+        <div class="result_title">{{ $t('result.title') }} {{ points }} {{ $t('result.points') }}</div>
+        <div class="total_title">(Total : {{ roundStore.score }} {{ $t('result.points') }})</div>
       </div>
-      <h4 v-if="!noGuess" class="distance">Distance : {{ formattedDistance }}</h4>
-      <h4 v-if="noGuess" class="distance">Temps écoulé !</h4>
+      <h4 v-if="!noGuess" class="distance">{{ $t('result.distance') }} : {{ formattedDistance }}</h4>
+      <h4 v-if="noGuess" class="distance">{{ $t('result.timeout') }}</h4>
       <MapResult :start-position="startPosition" :end-position="endPosition" />
-      <AppButton @click="play">{{ roundStore.round === 5 ? 'Terminer' : 'Suivant' }}</AppButton>
+      <AppButton @click="play">{{ roundStore.round === 5 ? $t('buttons.finish') : $t('buttons.next') }}</AppButton>
     </div>
   </div>
 </template>

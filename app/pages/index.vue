@@ -13,6 +13,9 @@ const pseudoInputOpened = ref<boolean>(false);
 const joinGameId = ref<string>("");
 const pseudo = ref<string>("");
 
+const { } = useI18n()
+
+
 onMounted(() => {
   multiplayer.initializeWebSocket();
 })
@@ -59,74 +62,88 @@ function startGame() {
 </script>
 
 <template>
-  <Modal :title="pseudoInputOpened ? 'Pseudo' : multiplayerMenuCodeOpened ? 'Code de la partie' : 'Multijoueur'" v-model:isVisible="multiplayerMenu">
-    <template #body class="join-container" v-if="pseudoInputOpened">
-      <input v-model="pseudo" placeholder="Entrez votre pseudo" class="game-code-input" />
-      <div class="inline_btn">
-        <AppButton @click="backToMenu">Retour</AppButton>
-        <AppButton @click="joinGame">Jouez !</AppButton>
+  <UApp>
+    <Modal
+      :title="pseudoInputOpened ? $t('modal.pseudo') : multiplayerMenuCodeOpened ? $t('modal.gameCode') : $t('modal.multiplayer')"
+      v-model:isVisible="multiplayerMenu">
+      <template #body class="join-container" v-if="pseudoInputOpened">
+        <input v-model="pseudo" :placeholder="$t('input.pseudoPlaceholder')" class="game-code-input" />
+        <div class="inline_btn">
+          <AppButton @click="backToMenu">{{ $t('buttons.back') }}</AppButton>
+          <AppButton @click="joinGame">{{ $t('buttons.play') }}</AppButton>
+        </div>
+      </template>
+      <template #body class="join-container" v-if="multiplayerMenuCodeOpened">
+        <input v-model="joinGameId" :placeholder="$t('input.codePlaceholder')" class="game-code-input" />
+        <div class="inline_btn">
+          <AppButton @click="backToMenu">{{ $t('buttons.back') }}</AppButton>
+          <AppButton @click="openPseudoInput">{{ $t('map.validate') }}</AppButton>
+        </div>
+      </template>
+      <template #body class="join-container" v-if="multiplayerMenuOpened">
+        <AppButton @click="openPseudoInput">{{ $t('buttons.createGame') }}</AppButton>
+        <AppButton @click="openCodeInput">{{ $t('buttons.joinGame') }}</AppButton>
+      </template>
+    </Modal>
+    <Modal :title="$t('home.lobby.waitingRoom')" v-model:isVisible="multiplayerMenuWaiting">
+      <template #body class="game-lobby" v-if="multiplayer.gameId">
+        <div class="game-code">{{ $t('home.lobby.gameCode') }} <span class="bold_code">{{ multiplayer.gameId }}</span>
+        </div>
+        <div class="players-list">
+          <div class="players_title">{{ $t('home.lobby.players') }}</div>
+          <ul>
+            <AppAvatar v-for="player in multiplayer.players" :key="player.id" :pseudo="player.username" />
+          </ul>
+        </div>
+        <AppButton v-if="multiplayer.players[0]?.id === multiplayer.playerId" @click="startGame"> {{
+          $t('home.lobby.startGame') }}
+        </AppButton>
+      </template>
+      <template #body class="game-lobby" v-else>
+        <div class="game-wait-creation">{{ $t('home.lobby.preparing') }}</div>
+      </template>
+    </Modal>
+    <div class="container">
+      <AppHeader :music="musicStore.isPlaying" />
+      <div class="homepage">
+        <div class="left">
+          <div class="home-title">{{ $t('home.hero.title') }}</div>
+          <div class="home-title">{{ $t('home.hero.text') }}</div>
+          <div>
+            <div class="buttons">
+              <NuxtLink href="/game">
+                <AppButton>{{ $t('home.hero.button.solo') }}</AppButton>
+              </NuxtLink>
+              <AppButton @click="openMultiplayerMenu">{{ $t('home.hero.button.multi') }}</AppButton>
+            </div>
+          </div>
+        </div>
+        <div class="right">
+          <img src="~/assets/logo_GeoRhena_illicoweb.svg" alt="world" />
+        </div>
       </div>
-    </template>
-    <template #body class="join-container" v-if="multiplayerMenuCodeOpened">
-      <input v-model="joinGameId" placeholder="Entrez un code de partie" class="game-code-input" />
-      <div class="inline_btn">
-        <AppButton @click="backToMenu">Retour</AppButton>
-        <AppButton @click="openPseudoInput">Valider</AppButton>
-      </div>
-    </template>
-    <template #body class="join-container" v-if="multiplayerMenuOpened">
-      <AppButton @click="openPseudoInput">Créer une partie</AppButton>
-      <AppButton @click="openCodeInput">Rejoindre une partie</AppButton>
-    </template>
-  </Modal>
-  <Modal title="Salle d'attente" v-model:isVisible="multiplayerMenuWaiting">
-    <template #body class="game-lobby" v-if="multiplayer.gameId">
-      <div class="game-code">Code de la partie: <span class="bold_code">{{ multiplayer.gameId }}</span></div>
-      <div class="players-list">
-        <div class="players_title">Joueurs :</div>
-        <ul>
-          <AppAvatar  v-for="player in multiplayer.players" :key="player.id" :pseudo="player.username"/>
-        </ul>
-      </div>
-      <AppButton v-if="multiplayer.players[0]?.id === multiplayer.playerId" @click="startGame">Démarrer la partie</AppButton>
-    </template>
-    <template #body class="game-lobby" v-else>
-      <div class="game-wait-creation">Préparation des photos...</div>
-    </template>
-  </Modal>
-  <div class="container">
-    <AppHeader :music="musicStore.isPlaying"/>
-    <div class="homepage">
-      <div class="left">
-        <div class="home-title">Découvrez le Rhin Supérieur !</div>    
-        <div class="home-title">Une photo s'affiche à l'écran et c'est à vous de trouver où elle se situe sur la carte.</div>
-        <div>
+    </div>
+    <div class="about">
+      <div class="about-columns">
+        <div class="left">
+          <img class="pnx-logo" src="~/assets/logo_GeoRhena_illicoweb.svg" alt="" />
+        </div>
+        <div class="right">
+          <div class="home-subtitle">{{ $t('home.about.text') }}</div>
           <div class="buttons">
-            <NuxtLink href="/game"><AppButton>Partie solo</AppButton></NuxtLink>
-            <AppButton @click="openMultiplayerMenu">Multijoueur</AppButton>
+            <a href="https://panoramax.fr" target="_blank">
+              <AppButton>{{ $t('home.about.button') }}</AppButton>
+            </a>
+            <NuxtLink href="/credits">
+              <AppButton>{{ $t('home.about.credits') }}</AppButton>
+            </NuxtLink>
           </div>
         </div>
       </div>
-      <div class="right">
-        <img src="~/assets/logo_GeoRhena_illicoweb.svg" alt="world" />
-      </div>
+      <iframe class="viewer"
+        src="https://api.panoramax.xyz/?focus=pic&map=19.54/48.579239/7.739049&pic=a403c8b1-11b1-42fc-9f0d-3774f0e816be&speed=250&theme=score&xyz=202.42/18.67/30"></iframe>
     </div>
-  </div>
-  <div class="about">
-    <div class="about-columns">
-      <div class="left">
-        <img class="pnx-logo" src="~/assets/logo_GeoRhena_illicoweb.svg"  alt="" />
-      </div>
-      <div class="right">
-        <div class="home-subtitle">RhenaGuessr est basé sur Panoramax, le géocommuns des photos de rues libres et gratuites.</div>
-        <div class="buttons">
-          <a href="https://panoramax.fr" target="_blank"><AppButton>En savoir plus</AppButton></a>
-          <NuxtLink href="/credits"><AppButton>Crédits</AppButton></NuxtLink>
-        </div>
-      </div>
-    </div>
-    <iframe class="viewer" src="https://api.panoramax.xyz/?focus=pic&map=19.54/48.579239/7.739049&pic=a403c8b1-11b1-42fc-9f0d-3774f0e816be&speed=250&theme=score&xyz=202.42/18.67/30"></iframe>
-  </div>
+  </UApp>
 </template>
 
 <style scoped lang="scss">
@@ -295,7 +312,8 @@ function startGame() {
   width: 100%;
 }
 
-.game-code, .game-wait-creation {
+.game-code,
+.game-wait-creation {
   font-family: "Neo Regular", sans-serif;
   font-size: 1rem;
   padding: 1rem;
@@ -356,9 +374,22 @@ li {
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  25% { transform: translateY(-30px); }
-  50% { transform: translateY(0); }
-  75% { transform: translateY(-15px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  25% {
+    transform: translateY(-30px);
+  }
+
+  50% {
+    transform: translateY(0);
+  }
+
+  75% {
+    transform: translateY(-15px);
+  }
 }
 </style>

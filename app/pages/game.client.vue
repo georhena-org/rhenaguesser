@@ -76,7 +76,7 @@ function updateMusic() {
   <div class="page">
     <div v-if="!pictureId" class="loading">
       <AppButton>Round {{roundStore.round}} / 5</AppButton>
-      <div class="title">Chargement...</div>
+      <div class="title">{{ $t('game.loading') }}</div>
     </div>
     <template v-else>
       <div v-if="loaderReady" class="countdown">

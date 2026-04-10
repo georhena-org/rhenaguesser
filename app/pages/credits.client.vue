@@ -1,30 +1,43 @@
 <script setup lang="ts">
+const { locale, locales } = useI18n()
+const switchLocalePath = useSwitchLocalePath()
 
 </script>
 
 <template>
   <div class="credit_container">
     <div class="homepage">
-      <div class="home-title">Crédits</div>
+      <div class="home-title">{{ $t('credits.title') }}</div>
+
       <div class="credit_content">
-        <div class="content">GeoRhena remercie Corentin Barbedette, Clément Guibout et Maxandre Rochefort (étudiants de l'IMT Atlantique) pour la mise à disposition du code de la version initiale de PanoGuessr.</div>
-        <div class="content">Accéder aux données <a href="https://panoramax.fr" target="_blank">Panoramax</a>. </div>
-      </div>
-      <div class="credit_content">
-        <div class="subtitle">Code source</div>
+        <div class="content">{{ $t('credits.thanks') }}</div>
         <div class="content">
-          Le code source de PanoGuessr est disponible sous licence MIT sur ce <a href="https://gitlab.com/panoguessr/panoguessr.com">dépôt GitLab</a>.
+          {{ $t('credits.panoramax') }}
+          <a href="https://panoramax.fr" style="text-decoration: underline;" target="_blank">Panoramax</a>
         </div>
       </div>
+
       <div class="credit_content">
-        <div class="subtitle">Licenses et crédits</div>
+        <div class="subtitle">{{ $t('credits.sourceTitle') }}</div>
         <div class="content">
-          Les détails sont présentés dans le <a href="https://gitlab.com/panoguessr/panoguessr.com/-/blob/develop/LICENSE">fichier LICENSE du dépôt Gitlab</a>.
+          {{ $t('credits.sourceText') }}
+          <a href="https://gitlab.com/panoguessr/panoguessr.com" style="text-decoration: underline;" target="_blank">PanoGuessr</a>
+        </div>
+      </div>
+
+      <div class="credit_content">
+        <div class="subtitle">{{ $t('credits.licenseTitle') }}</div>
+        <div class="content">
+          {{ $t('credits.licenseText') }}
+          <a href="https://gitlab.com/panoguessr/panoguessr.com/-/blob/develop/LICENSE" style="text-decoration: underline;" target="_blank">
+            LICENSE
+          </a>
         </div>
       </div>
     </div>
+
     <AppButton>
-      <a href="/">Retour</a>
+      <a href="/">{{ $t('credits.back') }}</a>
     </AppButton>
   </div>
 </template>
@@ -87,5 +100,4 @@
     }
   }
 }
-
 </style>

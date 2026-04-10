@@ -1,11 +1,24 @@
 <script setup lang="ts">
-import {useUserStore} from "~/stores/user";
+import { useUserStore } from "~/stores/user";
+import type { DropdownMenuItem } from '@nuxt/ui'
 
 const userStore = useUserStore();
 const musicStore = useMusiqueStore();
+const { locale, locales, setLocale } = useI18n()
+
+const normalizedLocales = computed(() =>
+  locales.value.map((loc) => ({ code: loc.code, name: loc.name })).filter((loc) => loc.code !== locale.value)
+)
+
+
 function updateMusic() {
   musicStore.toggleMusic();
 }
+
+async function changeLocale(code: 'fr' | 'de' | 'en') {
+  await setLocale(code);
+}
+
 </script>
 
 <template>
@@ -21,11 +34,19 @@ function updateMusic() {
         </div>
       </div>
     </div>-->
-    <div class="vol_button">
-      <Icon v-if="musicStore.isPlaying" @click="updateMusic()" name="tabler:volume"/>
-      <Icon v-else @click="updateMusic()" name="tabler:volume-off"/>
+
+    <div class="lang-switch">
+      <span class="current-lang">
+        {{ locale.toUpperCase() }}
+      </span>
+
+      <a v-for="loc in normalizedLocales" :key="loc.code" @click="changeLocale(loc.code)" class="lang-link"
+        role="button">
+        {{ loc.name || loc.code.toUpperCase() }}
+      </a>
     </div>
   </div>
+
 </template>
 
 <style scoped lang="scss">
@@ -38,15 +59,35 @@ function updateMusic() {
   align-items: center;
   gap: 1rem;
 
-  .vol_button {
+  .lang-switch {
     display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 5px;
-    background-color: $dark-color;
-    border: 2px solid $blue-shade-2;
-    border-radius: 100px;
+    gap: 0.75rem;
+    padding: 0.4rem 0.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid $blue-shade-2;
+    border-radius: 999px;
+    backdrop-filter: blur(6px);
+  }
+
+  .lang-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $white-color;
+    opacity: 0.6;
+    text-decoration: none;
+    transition: all 0.2s ease;
     cursor: pointer;
+
+    &:hover {
+      opacity: 1;
+      color: white;
+    }
+  }
+
+  .current-lang {
+    font-weight: 700;
+    color: $blue-shade-1;
   }
 
   .user-profile {
@@ -103,4 +144,3 @@ function updateMusic() {
 
 }
 </style>
-

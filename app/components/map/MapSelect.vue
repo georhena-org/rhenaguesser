@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import {LMap, LTileLayer, LMarker, LGeoJson} from "@vue-leaflet/vue-leaflet";
+import { LMap, LTileLayer, LMarker, LGeoJson } from "@vue-leaflet/vue-leaflet";
 
 interface Position {
   lat: number;
@@ -10,7 +10,9 @@ interface Position {
 const map = ref<LMap>(null)
 const geoJsonData = ref<any>(null);
 const isMapBigger = ref<boolean>(false);
-const position = ref<Position>({lat: 0, lng: 0});
+const position = ref<Position>({ lat: 0, lng: 0 });
+
+const { } = useI18n()
 
 const emits = defineEmits<{
   validate: [position: Position];
@@ -37,7 +39,7 @@ function validatePosition() {
 }
 
 function resetPosition() {
-  position.value = {lat: 0, lng: 0};
+  position.value = { lat: 0, lng: 0 };
 }
 
 function resetMapSize() {
@@ -61,39 +63,24 @@ defineExpose({
 <template>
   <div class="map-wrapper" :class="{ 'bigger': isMapBigger }">
     <Transition name="fade" mode="out-in">
-      <AppButton v-if="canValidatePosition" class="validate-btn" @click="validatePosition" @mouseover="onMapIn">Valider</AppButton>
+      <AppButton v-if="canValidatePosition" class="validate-btn" @click="validatePosition" @mouseover="onMapIn">{{ $t('map.validate') }}</AppButton>
     </Transition>
-    <LMap
-        ref="map"
-        class="map"
-        :zoom="7"
-        :center="[48.23, 7.77]"
-        :use-global-leaflet="false"
-        @click="onMapClick"
-        @mouseout="onMapOut"
-        @mouseover="onMapIn"
-    >
-      <LTileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&amp;copy; <a href=&quot;https://www.openstreetmap.org/&quot;>OpenStreetMap</a> contributors"
-          layer-type="base"
-          name="OpenStreetMap"
-      />
-      <LGeoJson 
-        v-if="geoJsonData" 
-        :geojson="geoJsonData" 
-          :options="{
-    onEachFeature: (feature, layer) => {
-      layer.setStyle({
-        color: 'red',
-        weight: 3,
-        fillColor: 'transparent',
-        fillOpacity: 0,
-      });
-    }
-  }"
-      />
-      <LMarker :lat-lng="[position.lat, position.lng]"/>
+    <LMap ref="map" class="map" :zoom="7" :center="[48.23, 7.77]" :use-global-leaflet="false" @click="onMapClick"
+      @mouseout="onMapOut" @mouseover="onMapIn">
+      <LTileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="&amp;copy; <a href=&quot;https://www.openstreetmap.org/&quot;>OpenStreetMap</a> contributors"
+        layer-type="base" name="OpenStreetMap" />
+      <LGeoJson v-if="geoJsonData" :geojson="geoJsonData" :options="{
+        onEachFeature: (feature, layer) => {
+          layer.setStyle({
+            color: 'red',
+            weight: 3,
+            fillColor: 'transparent',
+            fillOpacity: 0,
+          });
+        }
+      }" />
+      <LMarker :lat-lng="[position.lat, position.lng]" />
     </LMap>
   </div>
 </template>
