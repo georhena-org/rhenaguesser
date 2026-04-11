@@ -16,6 +16,7 @@ const props = defineProps<{
 
 .header {
   display: flex;
+  flex-wrap: wrap;
   width: 100%;
   justify-content: space-between;
   align-items: start;

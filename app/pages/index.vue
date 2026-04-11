@@ -160,9 +160,11 @@ function startGame() {
   gap: 2rem;
 
 
-  @media screen and (max-width: 500px) {
+  @media screen and (max-width:690px) {
     margin-inline: 20px;
   }
+
+  
 }
 
 .about {

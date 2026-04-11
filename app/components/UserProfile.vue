@@ -55,6 +55,7 @@ async function changeLocale(code: 'fr' | 'de' | 'en') {
 .header_container {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
