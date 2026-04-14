@@ -103,7 +103,7 @@ function startGame() {
         <div class="game-wait-creation">{{ $t('home.lobby.preparing') }}</div>
       </template>
     </Modal>
-    <div class="container">
+    <div class="container  min-w-full">
       <AppHeader :music="musicStore.isPlaying" />
       <div class="homepage">
         <div class="left">
@@ -119,7 +119,7 @@ function startGame() {
           </div>
         </div>
         <div class="right">
-          <img src="~/assets/logo_GeoRhena_illicoweb.svg" alt="world" />
+          <img src="~/assets/logo_GeoRhena_illicoweb.svg" alt="logo GeoRhena" />
         </div>
       </div>
     </div>
@@ -239,8 +239,9 @@ function startGame() {
   width: 95%;
   height: 100%;
   gap: 1rem;
+  margin-right: 50px;
 
-  @media screen and (max-width: 500px) {
+  @media screen and (max-width: 800px) {
     flex-direction: column-reverse;
     gap: 50px;
   }

@@ -65,6 +65,15 @@ export async function queryPanoramaxAPI(point: GeoPoint): Promise<Picture | null
       point.lat + 2
     ],
     filter: "field_of_view=360"
+    // filter:
+    // {
+    //     "op": "or",
+    //         "args": [
+    //         { "op": "=", "args": [ { "property": "user" }, "3dd28981-01a9-45f7-a3ca-a90216f20cb3" ] }, // georhena
+    //         { "op": "=", "args": [ { "property": "user" }, "5762b0ba-36cc-4d6b-b9dc-6357c770b6ec" ] }  // strasbourg eurométropole
+    //     ],
+    //     "limit": 10
+    // }
     })
   })
   const res1json = await res1.json();

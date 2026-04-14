@@ -69,6 +69,7 @@ async function changeLocale(code: 'fr' | 'de' | 'en') {
     border: 1px solid $blue-shade-2;
     border-radius: 999px;
     backdrop-filter: blur(6px);
+    margin-right: 40px;
   }
 
   .lang-link {
