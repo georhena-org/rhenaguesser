@@ -12,6 +12,9 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
   ssr: false,
+  experimental: {
+    viteEnvironmentApi: true,
+  },
 
   modules: ['@nuxtjs/leaflet', '@nuxt/icon', '@pinia/nuxt', '@nuxtjs/i18n', '@nuxt/ui'],
   i18n: {

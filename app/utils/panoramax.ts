@@ -1,16 +1,28 @@
-import { getRandomPoints } from '~~/server/utils/geo';
-import type { GeoPoint, Picture } from '~~/types/geo';
+import { getRandomPoints } from '~~/server/utils/geo'
+import type { GeoPoint, Picture } from '~~/types/geo'
 
+const MIN_PICS_IN_COLLECTION = 10
+const MAX_FAILED_TRIALS = 10
+const ALLOW_NON_SEQUENCE_PICS = true
+const RANDOM_POINT_BUFFER = 0.05
+
+const GEORHENA_PICS_IDS: string[] = [
+  '46a54102-0655-4b2c-a38d-d502965c0b49',
+  'cd019240-0b97-4882-aca2-9e86c8e7287e',
+  'e699606e-cc5c-49b9-afee-4f03a22b891f',
+]
+const GEORHENA_PICS_RATIO = 3 / 5
+
+const RHIN_SUP_BBOX = [6.84079, 47.07434, 8.89452, 49.34438] as const
 
 /**
  * Get the full URL for some Panoramax API route
  * @param route The route to query, like /search
  * @returns The full URL
  */
-export function getAPIUrl(route: string = "") {
-	return `https://api.panoramax.xyz/api${route}`;
+export function getAPIUrl(route: string = '') {
+  return `https://api.panoramax.xyz/api${route}`
 }
-
 
 /**
  * Find one or many Panoramax pictures IDs
@@ -18,88 +30,168 @@ export function getAPIUrl(route: string = "") {
  * @return Picture ID & position
  */
 export async function getPanoramaxPictureIDs(amount: number = 1): Promise<Picture[]> {
-  let pictures: Picture[] = [];
-  let randomPoints: GeoPoint[] = [];
-  let trials = 0;
+  const targetGeorhena = Math.min(
+    Math.round(amount * GEORHENA_PICS_RATIO),
+    GEORHENA_PICS_IDS.length,
+  )
+  // grab all georhena pics and shuffle em
+  let georhenaPics = await queryPanoramaxAPIByPicIDs(GEORHENA_PICS_IDS)
+  georhenaPics = shuffle(georhenaPics).slice(0, targetGeorhena)
 
-  do {
-    // Get random geo positions
-    if(randomPoints.length === 0) {
-      randomPoints = getRandomPoints();
+  const randomPics: Picture[] = []
+  const targetRandom = amount - georhenaPics.length
+
+  let randomPoints: GeoPoint[] = []
+  let trials = 0
+
+  console.log('[panoramax] targetGeorhena=', targetGeorhena, 'targetRandom=', targetRandom)
+
+  while (randomPics.length < targetRandom) {
+    if (randomPoints.length === 0) {
+      randomPoints = getRandomPoints()
     }
 
-    // Call Panoramax API
-    do {
-      let pic = await queryPanoramaxAPI(randomPoints.pop());
-      if(!pic) { trials++; }
-      if(pic && !pictures.find(p => p.id === pic.id)) {
-        pictures.push(pic);
+    const point = randomPoints.pop()
+    if (!point) continue
+    console.log(
+      '[panoramax] trying point',
+      point,
+      'trials=',
+      trials,
+      'randomPics=',
+      randomPics.length,
+      '/',
+      targetRandom,
+    )
+
+    const pic = await queryPanoramaxAPIPicture(point)
+    if (!pic) {
+      trials++
+      if (trials >= MAX_FAILED_TRIALS) {
+        throw new Error("Can't find any pictures")
       }
+      continue
+    }
 
-      if(trials == 10) { throw new Error("Can't find any pictures"); }
+    if (
+      !randomPics.some((p) => p.id === pic.id) &&
+      !georhenaPics.some((p) => p.id === pic.id)
+    ) {
+      randomPics.push(pic)
+      trials = 0
+    }
+  }
 
-    } while(randomPoints.length > 0 && pictures.length < amount);
-  } while(pictures.length < amount);
-
-  return pictures;
+  // on alterne entre les 2 images
+  const result: Picture[] = []
+  const maxLen = Math.max(georhenaPics.length, randomPics.length)
+  for (let i = 0; i < maxLen; i++) {
+    if (i < georhenaPics.length) result.push(georhenaPics[i])
+    if (i < randomPics.length) result.push(randomPics[i])
+  }
+  return result
 }
-
 
 /**
  * Find a valid picture ID on Panoramax API
  * @param point The coordinates to look around
  * @returns The picture ID, or null if no one found
  */
-export async function queryPanoramaxAPI(point: GeoPoint): Promise<Picture | null> {
+export async function queryPanoramaxAPIPicture(point: GeoPoint): Promise<Picture | null> {
+  console.log('Querying Panoramax API for point', point)
+  const bbox = limitBBoxToRhinSup([
+    point.lng - RANDOM_POINT_BUFFER,
+    point.lat - RANDOM_POINT_BUFFER,
+    point.lng + RANDOM_POINT_BUFFER,
+    point.lat + RANDOM_POINT_BUFFER,
+  ])
+  const inverted = bbox[0] >= bbox[2] || bbox[1] >= bbox[3]
+  console.log('[panoramax] bbox=', bbox, 'inverted=', inverted, 'features=', '(pending)')
+
   const res1 = await fetch(getAPIUrl('/search'), {
     method: 'POST',
-    headers: {
-    'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-    limit: 1,
-    bbox:  [
-      point.lng - 2,
-      point.lat - 2,
-      point.lng + 2,
-      point.lat + 2
-    ],
-    filter: "field_of_view=360"
-    // filter:
-    // {
-    //     "op": "or",
-    //         "args": [
-    //         { "op": "=", "args": [ { "property": "user" }, "3dd28981-01a9-45f7-a3ca-a90216f20cb3" ] }, // georhena
-    //         { "op": "=", "args": [ { "property": "user" }, "5762b0ba-36cc-4d6b-b9dc-6357c770b6ec" ] }  // strasbourg eurométropole
-    //     ],
-    //     "limit": 10
-    // }
-    })
+      limit: ALLOW_NON_SEQUENCE_PICS ? 10 : 1,
+      bbox: bbox,
+      filter: 'field_of_view=360',
+    }),
   })
-  const res1json = await res1.json();
-  
+
+  const res1json = await res1.json()
+  console.log('[panoramax] got', res1json.features?.length ?? 0, 'features')
+
   // Check if given image is not single in its collection, and we have enough around
-  if(res1json.features.length > 0) {
+  if (res1json.features.length > 0) {
     const res = {
       id: res1json.features[0].id,
       position: {
         lat: res1json.features[0].geometry.coordinates[1],
-        lng: res1json.features[0].geometry.coordinates[0]
-      }
-    };
-    const nbSameCollec = res1json.features.filter(f => f.collection == res1json.features[0].collection).length;
-    if(nbSameCollec === 10) {
-      return res;
+        lng: res1json.features[0].geometry.coordinates[0],
+      },
     }
-    else {
+    const nbSameCollec = res1json.features.filter(
+      (f: any) => f.collection === res1json.features[0].collection,
+    ).length
+    if (nbSameCollec >= MIN_PICS_IN_COLLECTION) {
+      console.log('if branch runnin')
+      // If we have enough pictures in the same collection, we can use it
+      return res
+    } else {
+      console.log('else branch runnin')
       // Look at first picture collection details
-      const res2 = await(fetch(getAPIUrl(`/collections/${res1json.features[0].collection}`)));
-      const res2json = await res2.json();
-      if(res2json?.["stats:items"]?.["count"] >= 30) {
-        return res;
+      const res2 = await fetch(
+        getAPIUrl(`/collections/${res1json.features[0].collection}`),
+      )
+      const res2json = await res2.json()
+      if (!res2json?.['stats:items']?.['count']) return null
+      if (res2json?.['stats:items']?.['count'] >= 30) {
+        return res
       }
     }
   }
-  
-  return null;
+
+  return null
+}
+
+//https://api.panoramax.xyz/api/search
+// ?limit=10
+// &ids=46a54102-0655-4b2c-a38d-d502965c0b49,35f89915-43dd-47b4-9ea3-351d986f4354
+export async function queryPanoramaxAPIByPicIDs(ids: string[]): Promise<Picture[]> {
+  const limit = ids.length
+  const res = await fetch(getAPIUrl(`/search?ids=${ids.join(',')}&limit=${limit}`))
+  const resjson = await res.json()
+  return resjson.features.map((f: any) => ({
+    id: f.id,
+    position: {
+      lat: f.geometry.coordinates[1],
+      lng: f.geometry.coordinates[0],
+    },
+  }))
+}
+
+// Fisher-Yates shuffle
+function shuffle<T>(array: T[]): T[] {
+  for (let i = array.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1)) // random index from 0 to i
+
+    // swap elements array[i] and array[j]
+    // we use "destructuring assignment" syntax to achieve that
+    // you'll find more details about that syntax in later chapters
+    // same can be written as:
+    // let t = array[i]; array[i] = array[j]; array[j] = t
+    ;[array[i], array[j]] = [array[j], array[i]]
+  }
+  return array
+}
+
+const limitBBoxToRhinSup = (
+  bbox: [number, number, number, number],
+): [number, number, number, number] => {
+  return [
+    Math.max(bbox[0], RHIN_SUP_BBOX[0]),
+    Math.max(bbox[1], RHIN_SUP_BBOX[1]),
+    Math.min(bbox[2], RHIN_SUP_BBOX[2]),
+    Math.min(bbox[3], RHIN_SUP_BBOX[3]),
+  ]
 }

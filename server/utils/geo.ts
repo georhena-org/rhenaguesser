@@ -2,8 +2,10 @@ import { GeoPoint, GeoJSON } from "~~/types/geo";
 import { booleanIntersects } from "@turf/boolean-intersects";
 import { randomPoint } from "@turf/random";
 import { bbox } from "@turf/bbox";
+// search_area.json geojson du périmètre du Rhin SUpérieur 
 import searchAreas from '@/assets/data/geo/search_area.json';
 
+// bbox du rhin supérieur pour générer des points aléatoires
 const SEARCH_AREAS = searchAreas.features.map(f => ({feature: f, bbox: bbox(f)}));
 
 export function isPointInPolygon(point: GeoPoint, polygon: GeoJSON): boolean {
