@@ -2,7 +2,7 @@ import { getRandomPoints } from '~~/server/utils/geo'
 import type { GeoPoint, Picture } from '~~/types/geo'
 
 const MIN_PICS_IN_COLLECTION = 10
-const MAX_FAILED_TRIALS = 10
+const MAX_FAILED_TRIALS = 20
 const ALLOW_NON_SEQUENCE_PICS = true
 const RANDOM_POINT_BUFFER = 0.05
 
@@ -44,8 +44,6 @@ export async function getPanoramaxPictureIDs(amount: number = 1): Promise<Pictur
   let randomPoints: GeoPoint[] = []
   let trials = 0
 
-  console.log('[panoramax] targetGeorhena=', targetGeorhena, 'targetRandom=', targetRandom)
-
   while (randomPics.length < targetRandom) {
     if (randomPoints.length === 0) {
       randomPoints = getRandomPoints()
@@ -53,16 +51,6 @@ export async function getPanoramaxPictureIDs(amount: number = 1): Promise<Pictur
 
     const point = randomPoints.pop()
     if (!point) continue
-    console.log(
-      '[panoramax] trying point',
-      point,
-      'trials=',
-      trials,
-      'randomPics=',
-      randomPics.length,
-      '/',
-      targetRandom,
-    )
 
     const pic = await queryPanoramaxAPIPicture(point)
     if (!pic) {
@@ -98,7 +86,6 @@ export async function getPanoramaxPictureIDs(amount: number = 1): Promise<Pictur
  * @returns The picture ID, or null if no one found
  */
 export async function queryPanoramaxAPIPicture(point: GeoPoint): Promise<Picture | null> {
-  console.log('Querying Panoramax API for point', point)
   const bbox = limitBBoxToRhinSup([
     point.lng - RANDOM_POINT_BUFFER,
     point.lat - RANDOM_POINT_BUFFER,
@@ -106,7 +93,6 @@ export async function queryPanoramaxAPIPicture(point: GeoPoint): Promise<Picture
     point.lat + RANDOM_POINT_BUFFER,
   ])
   const inverted = bbox[0] >= bbox[2] || bbox[1] >= bbox[3]
-  console.log('[panoramax] bbox=', bbox, 'inverted=', inverted, 'features=', '(pending)')
 
   const res1 = await fetch(getAPIUrl('/search'), {
     method: 'POST',
@@ -119,7 +105,6 @@ export async function queryPanoramaxAPIPicture(point: GeoPoint): Promise<Picture
   })
 
   const res1json = await res1.json()
-  console.log('[panoramax] got', res1json.features?.length ?? 0, 'features')
 
   // Check if given image is not single in its collection, and we have enough around
   if (res1json.features.length > 0) {
@@ -134,11 +119,9 @@ export async function queryPanoramaxAPIPicture(point: GeoPoint): Promise<Picture
       (f: any) => f.collection === res1json.features[0].collection,
     ).length
     if (nbSameCollec >= MIN_PICS_IN_COLLECTION) {
-      console.log('if branch runnin')
       // If we have enough pictures in the same collection, we can use it
       return res
     } else {
-      console.log('else branch runnin')
       // Look at first picture collection details
       const res2 = await fetch(
         getAPIUrl(`/collections/${res1json.features[0].collection}`),

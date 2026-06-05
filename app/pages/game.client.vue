@@ -2,10 +2,6 @@
 import {Howl} from 'howler';
 import type {GeoPoint} from "~~/types/geo";
 
-const {data} = useFetch("/api/start-new-game", {
-  method: 'POST'
-});
-
 const clockTickingSound = useState<Howl>('clock-ticking-sound');
 
 const pictureId = ref<string | null>(null);
@@ -15,9 +11,15 @@ const positionStore = usePositionStore();
 const roundStore = useRoundStore();
 const musicStore = useMusiqueStore();
 
-watch(data, () => {
-  pictureId.value = data.value.locationId;
-})
+async function loadRound() {
+  // Fetch the 5 game pictures only once, at the start of a new game,
+  // so the predefined/random ratio in getPanoramaxPictureIDs applies to the whole batch.
+  if (roundStore.locations.length === 0) {
+    const resp = await $fetch("/api/start-new-game", { method: 'POST' });
+    roundStore.setLocations(resp.locationIds);
+  }
+  pictureId.value = roundStore.locations[roundStore.round - 1] ?? null;
+}
 
 async function onValidate(position: GeoPoint) {
   const resp = await $fetch(`/api/end-game`, {
@@ -65,6 +67,7 @@ onMounted(() => {
   if(musicStore.isPlaying) {
     musicStore.pause();
   }
+  loadRound();
 });
 
 function updateMusic() {

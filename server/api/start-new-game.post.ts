@@ -1,9 +1,10 @@
 import { getPanoramaxPictureIDs } from '~/utils/panoramax';
 
 type NewGameResponse = {
-  locationId: string;
+  locationIds: string[];
 }
 
 export default defineEventHandler(async (): Promise<NewGameResponse> => {
-  return { locationId: (await getPanoramaxPictureIDs())[0].id };
+  const pictures = await getPanoramaxPictureIDs(5);
+  return { locationIds: pictures.map(p => p.id) };
 });
