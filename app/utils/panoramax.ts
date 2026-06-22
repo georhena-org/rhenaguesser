@@ -9,7 +9,7 @@ const RANDOM_POINT_BUFFER = 0.05
 const GEORHENA_PICS_IDS: string[] = [
   '46a54102-0655-4b2c-a38d-d502965c0b49',
   'cd019240-0b97-4882-aca2-9e86c8e7287e',
-  'e699606e-cc5c-49b9-afee-4f03a22b891f',
+  '7340993e-7b42-4a10-9338-47211e358834', // Cathédrale de Bale
 ]
 const GEORHENA_PICS_RATIO = 3 / 5
 
