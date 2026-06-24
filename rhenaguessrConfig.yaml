@@ -1,0 +1,12 @@
+images:
+  # Ratio d'images prédéfinies vs aléatoires (0..1)
+  # ex: 0.6 = 60% d'images prédéfinies, donc 5 tours x 0.6 = 3 images prédéfinies
+  # s'il n'y a pas assez d'images prédéfinies, des images aléatoires sont utilisées
+  ratio_img_predefinies: 0.6
+
+  # IDs des images prédéfinies
+  images_predefinies: [
+    '46a54102-0655-4b2c-a38d-d502965c0b49',  # façade de l'HdA
+    'cd019240-0b97-4882-aca2-9e86c8e7287e',  # passage près de l'HdA
+    '7340993e-7b42-4a10-9338-47211e358834',  # Cathédrale de Bâle
+  ]

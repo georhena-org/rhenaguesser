@@ -6,13 +6,6 @@ const MAX_FAILED_TRIALS = 20
 const ALLOW_NON_SEQUENCE_PICS = true
 const RANDOM_POINT_BUFFER = 0.05
 
-const GEORHENA_PICS_IDS: string[] = [
-  '46a54102-0655-4b2c-a38d-d502965c0b49',
-  'cd019240-0b97-4882-aca2-9e86c8e7287e',
-  '7340993e-7b42-4a10-9338-47211e358834', // Cathédrale de Bale
-]
-const GEORHENA_PICS_RATIO = 3 / 5
-
 const RHIN_SUP_BBOX = [6.84079, 47.07434, 8.89452, 49.34438] as const
 
 /**
@@ -30,12 +23,18 @@ export function getAPIUrl(route: string = '') {
  * @return Picture ID & position
  */
 export async function getPanoramaxPictureIDs(amount: number = 1): Promise<Picture[]> {
+
+  const { images } = useRuntimeConfig()
+  const georhena_pics_ratio = images?.georhenaPicsRatio || 0.6
+  const georhena_pics_ids = images?.georhenaPicsIds || []
+
+
   const targetGeorhena = Math.min(
-    Math.round(amount * GEORHENA_PICS_RATIO),
-    GEORHENA_PICS_IDS.length,
+    Math.round(amount * georhena_pics_ratio),
+    georhena_pics_ids.length,
   )
   // grab all georhena pics and shuffle em
-  let georhenaPics = await queryPanoramaxAPIByPicIDs(GEORHENA_PICS_IDS)
+  let georhenaPics = await queryPanoramaxAPIByPicIDs(georhena_pics_ids)
   georhenaPics = shuffle(georhenaPics).slice(0, targetGeorhena)
 
   const randomPics: Picture[] = []

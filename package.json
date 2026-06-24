@@ -37,6 +37,8 @@
     "@types/geojson": "^7946.0.16",
     "@types/howler": "^2.2.13",
     "@types/leaflet": "^1.9.21",
-    "sass": "^1.100.0"
+    "@types/node": "^26.0.0",
+    "sass": "^1.100.0",
+    "yaml": "^2.9.0"
   }
 }

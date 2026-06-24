@@ -1,3 +1,8 @@
+import { readFileSync } from 'node:fs'
+import { parse } from 'yaml'
+
+const appConfig = parse(readFileSync('./rhenaguessrConfig.yaml', 'utf-8'))
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   app: {
@@ -10,6 +15,9 @@ export default defineNuxtConfig({
   },
   future: {
     compatibilityVersion: 4,
+  },
+  runtimeConfig: {
+    images: appConfig.images,
   },
   ssr: false,
   experimental: {
@@ -69,3 +77,13 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2025-01-21',
 })
+
+
+declare module 'nuxt/schema' {
+  interface RuntimeConfig {
+    images: {
+      ratio_img_predefinies: number
+      images_predefinies: string []
+    }
+  }
+}
