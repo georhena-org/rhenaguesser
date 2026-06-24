@@ -25,8 +25,8 @@ export function getAPIUrl(route: string = '') {
 export async function getPanoramaxPictureIDs(amount: number = 1): Promise<Picture[]> {
 
   const { images } = useRuntimeConfig()
-  const georhena_pics_ratio = images?.georhenaPicsRatio || 0.6
-  const georhena_pics_ids = images?.georhenaPicsIds || []
+  const georhena_pics_ratio = images?.ratio_img_predefinies || 0.6
+  const georhena_pics_ids = images?.images_predefinies || []
 
 
   const targetGeorhena = Math.min(
